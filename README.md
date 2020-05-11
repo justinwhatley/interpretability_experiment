@@ -15,6 +15,18 @@ Project aim:
 <!-- ROADMAP -->
 ## Roadmap
 
+Experiments: 
+1. data_exploration.ipynb:  Data exploration using Dask. Here statistics are gathered across the entire dataset to gain some intuition about the data and test Dask functionality
+
+2. lr_interpretability.ipynb:  Uses Dask functionality for out-of-memory training of a linear regression model with weight extraction as a proxy for feature importance. Here only continuous variables were taken as inputs as a test, but this may be expand to use categorical inputs with some kind of categorical encoding like OHE and take them in too.
+
+3. lightgbm_interpretablity.ipynb:  Uses a gradient boosting strategy with lightgbm and normal in-memory processing of a pandas dataframe to apply ShAP for model interpretability. To scale this, will have to add a preprocessing step for gradual ingestion of the data instead of depending on in-memory process. 
+
+4. lightgbm_dask.ipynb: Checks compatibility with lightgbm with Dask. Not fully supported (or I'm missing something!), this will need more work. 
+
+5. nn_interpretability: 
+
+
 See the [open issues](https://github.com/justinwhatley/interpretability_experiment/issues) for a list of ideas and known issues.
 
 
