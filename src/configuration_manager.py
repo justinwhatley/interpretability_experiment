@@ -7,6 +7,8 @@ class Config():
     """
     def __init__(self, config_path):
         self.parser = ConfigParser()
+        self.parser.optionxform = str
+        
         if isfile(config_path):
             print('Loading configuration from: ' + str(config_path))
             self.parser.read(config_path)
