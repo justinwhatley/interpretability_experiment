@@ -24,7 +24,7 @@ Experiments:
 
 4. lightgbm_dask.ipynb: Checks compatibility with lightgbm with Dask. Not fully supported (or I'm missing something!), this will need more work. 
 
-5. nn_interpretability: 
+5. nn_interpretability: (in progress) Uses a feed-forward neural network to model the data, representing categoricals as embeddings. Uses ShAP for interpretability of model - will see how this handles encoded categorical data. 
 
 
 See the [open issues](https://github.com/justinwhatley/interpretability_experiment/issues) for a list of ideas and known issues.
