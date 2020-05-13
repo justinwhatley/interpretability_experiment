@@ -78,11 +78,3 @@ def calculate_mse(model, valid_loader):
         total += current_batch_size
 
     return sum_loss/total
-
-
-    
-    
-    
-    
-    
-    
