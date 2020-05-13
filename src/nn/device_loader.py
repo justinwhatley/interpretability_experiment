@@ -1,3 +1,5 @@
+import torch
+
 def get_default_device():
     """
     Defaults to CPU, but will use GPU w/ Cuda if availablee
@@ -37,3 +39,4 @@ class DeviceDataLoader():
         Number of batches
         """
         return len(self.dl)
+    
