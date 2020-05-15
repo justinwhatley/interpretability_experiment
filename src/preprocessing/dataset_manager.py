@@ -4,9 +4,12 @@ from pathlib import PurePath
 from os.path import isdir
 from os import rmdir
 
+
+
 class DatasetManager():
     """
-    Used to create a training and test set to be used by different scripts
+    Separates files into training and test set to ensure that the test set data is excluded
+    as a final test of the model
     """
     
     def __init__(self, config_obj):
