@@ -36,14 +36,15 @@ class DatasetManager():
         self.targets = self.config.targets
         
     
-    def make_modifications(self, config):
+    def make_modifications(self, ddf, config):
         """
         Modifies the columns before output to test and training sets
         
         mod_dict_keys = 'new_column_name', 'first_column', 'operation', 'second_column'
         """
-        ddf = self.ddf
         mods = config.to_modify
+        
+        # Apply specified mod operations
         for mod in mods:
             if mod['operation'].lower() == 'subtract':
                 ddf[mod['new_column_name']] = ddf[mod['first_column']] - ddf[mod['second_column']]
@@ -56,6 +57,11 @@ class DatasetManager():
                 
             else:
                 print('Operation is not yet supported')
+                
+        # Drop specified columns
+        for column in config.columns_to_drop:
+            print(column)
+            ddf = ddf.drop(column, axis=1)
         
         return ddf
         
@@ -102,7 +108,7 @@ class DatasetManager():
             # Makes modifications from configuration file
             self.set_targets()
             self.load_raw_ddf()
-            self.make_modifications(self.config)
+            self.ddf = self.make_modifications(self.ddf, self.config)
             
             # Writes training and test sets to disk
             self.prepare_training_test(test_size)
@@ -120,6 +126,7 @@ class DatasetManager():
         import pyarrow
         engine = 'pyarrow'  
         print('Writing trainings and test sets: ')
+        print(self.X_train.head())
         
         dd.to_parquet(self.X_train, self.train_data_path, engine=engine)
         dd.to_parquet(self.y_train, self.train_target_path, engine=engine)
