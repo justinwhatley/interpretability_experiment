@@ -53,7 +53,6 @@ class DatasetManager():
                 
             elif mod['operation'].lower() == 'boolean':
                 ddf[mod['new_column_name']] = ddf[mod['first_column']] > 0 
-#                 ddf[mod['new_column_name']] = ddf[mod['new_column_name']].astype('bool')
                 
             else:
                 print('Operation is not yet supported')
@@ -120,12 +119,15 @@ class DatasetManager():
         """
         import pyarrow
         engine = 'pyarrow'  
-        print('Writing trainings and test sets')
+        print('Writing trainings and test sets: ')
+        
         dd.to_parquet(self.X_train, self.train_data_path, engine=engine)
         dd.to_parquet(self.y_train, self.train_target_path, engine=engine)
 
         dd.to_parquet(self.X_test, self.test_data_path , engine=engine)
         dd.to_parquet(self.y_test, self.test_target_path, engine=engine)
+        
+        print()
     
     
     def prepare_training_test(self, test_size = 0.1):
@@ -157,9 +159,9 @@ class DatasetManager():
         """
         Get dask test set reader
         """
-        self.X_test = dd.to_parquet(self.X_test, self.test_data_path)
-        self.y_test = dd.to_parquet(self.y_test, self.test_target_path)
+        self.X_test = dd.read_parquet(self.test_data_path)
+        self.y_test = dd.read_parquet(self.test_target_path)
         
-        return X_test, y_test
+        return self.X_test, self.y_test
     
     
