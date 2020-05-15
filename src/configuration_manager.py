@@ -62,10 +62,16 @@ class Config():
         self.to_modify = []
         for modification_line in to_modify_lst:
             r_lst = modification_line.split(',')
-            r_dict =  {'new_column_name': r_lst[0].strip(), 
-                       'first_column': r_lst[1].strip(), 
-                       'operation': r_lst[2].strip(),
-                       'second_column': r_lst[3].strip()}
+            if len(r_lst) == 4: 
+                r_dict =  {'new_column_name': r_lst[0].strip(), 
+                           'first_column': r_lst[1].strip(), 
+                           'operation': r_lst[2].strip(),
+                           'second_column': r_lst[3].strip()}
+            elif len(r_lst) == 3:
+                r_dict =  {'new_column_name': r_lst[0].strip(), 
+                           'first_column': r_lst[1].strip(), 
+                           'operation': r_lst[2].strip()}
+                
             self.to_modify.append(r_dict)
     
         # Get columns to drop from the training/validation set

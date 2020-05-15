@@ -14,13 +14,8 @@ class DatasetManager():
     
     def __init__(self, config_obj):
         self.config = config_obj
-        
         self.set_directories(self.config)
-        self.set_targets()
-        
-        self.ddf = self.load_ddf()
-        self.ddf = self.make_modifications(self.ddf, self.config)
-            
+    
     
     def set_directories(self, config):
         self.input_path = config.input_path
@@ -33,20 +28,21 @@ class DatasetManager():
         self.test_target_path = PurePath(config.test_target)    
     
     
-    def load_ddf(self):
-        return dd.read_parquet(self.input_path)
-        
+    def load_raw_ddf(self):
+        self.ddf = dd.read_parquet(self.input_path)
+        return self.ddf
 
     def set_targets(self):
         self.targets = self.config.targets
         
     
-    def make_modifications(self, ddf, config):
+    def make_modifications(self, config):
         """
         Modifies the columns before output to test and training sets
         
         mod_dict_keys = 'new_column_name', 'first_column', 'operation', 'second_column'
         """
+        ddf = self.ddf
         mods = config.to_modify
         for mod in mods:
             if mod['operation'].lower() == 'subtract':
@@ -54,6 +50,10 @@ class DatasetManager():
             
             elif mod['operation'].lower() == 'divide':
                 ddf[mod['new_column_name']] = ddf[mod['first_column']] / ddf[mod['second_column']]
+                
+            elif mod['operation'].lower() == 'boolean':
+                ddf[mod['new_column_name']] = ddf[mod['first_column']] > 0 
+#                 ddf[mod['new_column_name']] = ddf[mod['new_column_name']].astype('bool')
                 
             else:
                 print('Operation is not yet supported')
@@ -81,7 +81,7 @@ class DatasetManager():
             if not isdir(path):
                 return False
         return True
-        
+      
 
     def write_dataset(self, test_size = 0.1, overwrite = False):
         """
@@ -100,6 +100,11 @@ class DatasetManager():
             # Removes any full or partial datasets
             self._remove_dirs(paths_list)
             
+            # Makes modifications from configuration file
+            self.set_targets()
+            self.load_raw_ddf()
+            self.make_modifications(self.config)
+            
             # Writes training and test sets to disk
             self.prepare_training_test(test_size)
             self._write_dataset()
@@ -107,6 +112,7 @@ class DatasetManager():
         else:
             print('Not overwriting existing training and test sets')
 
+            
     def _write_dataset(self):
         """
         Helper function to write the actual dataset files
@@ -121,7 +127,6 @@ class DatasetManager():
         dd.to_parquet(self.X_test, self.test_data_path , engine=engine)
         dd.to_parquet(self.y_test, self.test_target_path, engine=engine)
     
-
     
     def prepare_training_test(self, test_size = 0.1):
         """
@@ -136,7 +141,6 @@ class DatasetManager():
                                                                                 y, 
                                                                                 test_size = test_size,
                                                                                 random_state = 42)
-
 
       
     def get_training_set(self):
