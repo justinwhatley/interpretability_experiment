@@ -1,4 +1,5 @@
 import dask.dataframe as dd
+import numpy as np
 import fastparquet
 from pathlib import PurePath
 from os.path import isdir
@@ -15,7 +16,7 @@ class DatasetManager():
     def __init__(self, config_obj):
         self.config = config_obj
         self.set_directories(self.config)
-    
+        self.ddf = None
     
     def set_directories(self, config):
         self.input_path = config.input_path
@@ -28,10 +29,13 @@ class DatasetManager():
         self.test_target_path = PurePath(config.test_target)    
     
     
-    def load_raw_ddf(self):
-        self.ddf = dd.read_parquet(self.input_path)
+    def load_ddf(self):
+        if self.ddf is None:
+            ddf = dd.read_parquet(self.input_path)
+            self.ddf = self.make_modifications(ddf, self.config)
         return self.ddf
 
+    
     def set_targets(self):
         self.targets = self.config.targets
         
@@ -51,6 +55,8 @@ class DatasetManager():
             
             elif mod['operation'].lower() == 'divide':
                 ddf[mod['new_column_name']] = ddf[mod['first_column']] / ddf[mod['second_column']]
+                ddf[mod['new_column_name']] = ddf[mod['new_column_name']].replace([np.inf, -np.inf], np.nan)
+                ddf[mod['new_column_name']] = ddf[mod['new_column_name']].fillna(0)
                 
             elif mod['operation'].lower() == 'boolean':
                 ddf[mod['new_column_name']] = ddf[mod['first_column']] > 0 
@@ -60,7 +66,6 @@ class DatasetManager():
                 
         # Drop specified columns
         for column in config.columns_to_drop:
-            print(column)
             ddf = ddf.drop(column, axis=1)
         
         return ddf
@@ -107,8 +112,7 @@ class DatasetManager():
             
             # Makes modifications from configuration file
             self.set_targets()
-            self.load_raw_ddf()
-            self.ddf = self.make_modifications(self.ddf, self.config)
+            self.ddf = self.load_ddf()
             
             # Writes training and test sets to disk
             self.prepare_training_test(test_size)
@@ -126,7 +130,6 @@ class DatasetManager():
         import pyarrow
         engine = 'pyarrow'  
         print('Writing trainings and test sets: ')
-        print(self.X_train.head())
         
         dd.to_parquet(self.X_train, self.train_data_path, engine=engine)
         dd.to_parquet(self.y_train, self.train_target_path, engine=engine)
