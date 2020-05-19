@@ -55,7 +55,9 @@ class DatasetManager():
             
             elif mod['operation'].lower() == 'divide':
                 ddf[mod['new_column_name']] = ddf[mod['first_column']] / ddf[mod['second_column']]
+                # Sets all inf values to NA 
                 ddf[mod['new_column_name']] = ddf[mod['new_column_name']].replace([np.inf, -np.inf], np.nan)
+                # Records all inf, -inf and null as 0 - will need to consider whether to change this
                 ddf[mod['new_column_name']] = ddf[mod['new_column_name']].fillna(0)
                 
             elif mod['operation'].lower() == 'boolean':
