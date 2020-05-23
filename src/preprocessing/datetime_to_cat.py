@@ -1,3 +1,14 @@
+def add_datetime_cat(ddf, datetime_columns_to_transform, hourslot=True, day_of_week=True):
+    """
+    For direct transformation without saving the object
+    """
+    datetime_converter = DatetimeConverter()
+    ddf, new_categorical_columns = datetime_converter.add_datetime_categories(ddf, 
+                                                                   datetime_columns_to_transform, 
+                                                                   hourslot=hourslot, 
+                                                                   day_of_week=day_of_week)
+    return ddf, new_categorical_columns
+
 
 class DatetimeConverter():
 
