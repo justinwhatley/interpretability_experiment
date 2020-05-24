@@ -10,6 +10,8 @@ def datetime_preprocessing_pipeline(ddf, datetime_columns_to_transform = []):
     return ddf
 
 
+from src.preprocessing.ohe_ddf_transformer import TransformerOHE
+
 def ohe_preprocessing_pipeline(encoder, ddf, categorical_columns_to_transform = [], datetime_columns_to_transform = []):
     """
     Preprocessing pipeline that transforms ddf before training
@@ -20,8 +22,6 @@ def ohe_preprocessing_pipeline(encoder, ddf, categorical_columns_to_transform = 
     ddf, new_categorical_columns = add_datetime_cat(ddf, datetime_columns_to_transform)
     categorical_columns_to_transform = categorical_columns_to_transform + new_categorical_columns
 
-
-    
     # Get OHE for columns to transform
     transformer = TransformerOHE(ddf, encoder, categorical_columns_to_transform)
     ohe_ddf = transformer.fit_transform()

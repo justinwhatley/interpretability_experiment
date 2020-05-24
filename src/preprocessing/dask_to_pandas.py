@@ -1,3 +1,4 @@
+
 import pandas as pd
 def concatenate(dfs):
     """
@@ -18,5 +19,31 @@ def concatenate(dfs):
     return pd.concat(dfs)
 
 
-        
-        
+def dask_ddf_to_df(ddf, partitions_to_concat=10):
+    """
+    Load and append to Pandas dataframe
+    """
+    
+    dfs = []
+    for i in range(partitions_to_concat):
+        ddf_partition = ddf.get_partition(i)
+        df_temp = ddf_partition.compute()
+        dfs.append(df_temp)
+
+    return concatenate(dfs)
+
+
+def dask_Xy_to_df(X_ddf, y_ddf, target, partitions_to_concat=10):
+    """
+    Load and append to Pandas dataframe from X and y ddfs
+    """
+    
+    ddf = X_ddf
+    ddf[target] = y_ddf[target]
+    
+    dfs = dask_ddf_to_df(ddf, partitions_to_concat)
+
+    y_df = dfs[target]
+    X_df = dfs.drop(columns=target)
+    
+    return X_df, y_df
