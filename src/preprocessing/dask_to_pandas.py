@@ -33,17 +33,18 @@ def dask_ddf_to_df(ddf, partitions_to_concat=10):
     return concatenate(dfs)
 
 
-def dask_Xy_to_df(X_ddf, y_ddf, target, partitions_to_concat=10):
+def dask_Xy_to_df(ddf, y_ddf, target, partitions_to_concat=10):
     """
     Load and append to Pandas dataframe from X and y ddfs
     """
-    
-    ddf = X_ddf
     ddf[target] = y_ddf[target]
     
     dfs = dask_ddf_to_df(ddf, partitions_to_concat)
 
     y_df = dfs[target]
     X_df = dfs.drop(columns=target)
+    
+    # Undoes the adding of the target to the initial ddf
+    ddf = ddf.drop(columns = target, axis=1)
     
     return X_df, y_df
