@@ -1,0 +1,26 @@
+dependencies:
+# Basic 
+ - python=3.7
+ - numpy
+ - pandas
+ - scipy
+ - scikit-learn
+ - jupyter
+ - requests
+ - matplotlib
+ 
+# Data management
+ - dask
+ - dask-ml
+ - pyarrow
+ - fastparquet
+
+# Gradient boosting
+ - lightgbm
+
+# Interpretability
+ - eli5
+ - shap
+
+# Neural networks
+ - pytorch 

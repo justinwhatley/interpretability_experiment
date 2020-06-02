@@ -1,4 +1,9 @@
-data/external/
-data/interim/
-data/processed/
-data/raw/
+project/data/external/
+project/data/interim/
+project/data/preprocessed/
+project/data/raw/
+
+.ipynb_checkpoints
+*/.ipynb_checkpoints/
+
+*/__pycache__/*
