@@ -28,6 +28,7 @@ def dask_ddf_to_df(ddf, partitions_to_concat=10):
     for i in range(partitions_to_concat):
         ddf_partition = ddf.get_partition(i)
         df_temp = ddf_partition.compute()
+#         df_temp = ddf_partition.persist()
         dfs.append(df_temp)
 
     return concatenate(dfs)
