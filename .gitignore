@@ -7,3 +7,5 @@ project/data/raw/
 */.ipynb_checkpoints/
 
 */__pycache__/*
+
+*/dask-worker-space/*
