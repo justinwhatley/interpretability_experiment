@@ -1,8 +1,14 @@
 from pathlib import Path
 import joblib
-recompute=False
+recompute=True
+
+# Columns to perform OHE on (applies only for linear case)
 cat_columns_to_ohe = ['HourSlot', 'Service']
 date_columns_to_ohe = []
+
+# Testing modules
+# from testing_scripts.test_regression import test_regression  
+from testing_scripts.test_classification import test_classification
 
 
 def load_config(config_path='config.ini'):
@@ -32,8 +38,95 @@ def init_dataset_manager(config):
     return DatasetManager(config)
 
 
+def run_exp_02_logistic_regression():
+    """
+    ***********************
+    Linear Model Experiment
+    ***********************
+    """
+    
+    """
+    ***********************
+    Local data preparation
+    ***********************
+    """
+    partitions_sample = 10
+    target = 'Status'
+    import dataset.dataloader as dl
+    dataloader = dl.DataLoader(dataset_manager)
+    
+    # local preprocessing (e.g., OHE for linear models)    
+    X_train, y_train = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe)
+    X, y = dl.convert_to_pandas(X_train, y_train, target, partitions_sample)
+    X, y = dl.make_binary_target(X, y, 'Status')
+    X.fillna(0, inplace=True)
 
-from testing_scripts.test_classification import test_classification
+    """
+    Fit model to training data
+    """
+    model_path = Path(config.models_directory, 'train_02_logistic_regression.sav')    
+    from training_scripts.train_02_logistic_regression import train_logistic_regression
+    train_logistic_regression(X, y, save_to=model_path, recompute=recompute)
+
+    """
+    Test performance on unseen data
+    """    
+    X_test, y_test = dataloader.get_test_ohe(cat_columns_to_ohe, date_columns_to_ohe)
+    X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
+    X.fillna(0, inplace=True)
+    X, y = dl.make_binary_target(X, y, 'Status')
+    test_classification(X, y, model_path)
+    
+    """
+    Get interpretation - simple weights for linear models
+    """
+    import eli5
+    explanation_df = eli5.explain_weights_df(joblib.load(model_path), 
+                                             feature_names=X.columns.values)
+    explanation_df.sort_values('weight', inplace=True)
+    print(explanation_df.head())
+
+    
+def run_exp_04_lightgbm_classification():
+    """
+    ****************************
+    Gradient Boosting Experiment
+    ****************************
+    """
+    
+    """
+    ***********************
+    Local data preparation
+    ***********************
+    """
+    partitions_sample = 10
+    target = 'Status'
+    import dataset.dataloader as dl
+    dataloader = dl.DataLoader(dataset_manager)
+    
+    # local preprocessing (e.g., OHE for linear models)    
+    X_train, y_train = dataloader.get_train()
+    
+    """
+    Fit model to training data
+    """
+    model_path = Path(config.models_directory, 'train_04_lightgbm_classification.sav')    
+    X, y = dl.convert_to_pandas(X_train, y_train, target, partitions_sample)
+    X, y = dl.make_binary_target(X, y, 'Status')
+    
+    from training_scripts.train_04_lightgbm_classification import train_lightgbm_regression
+    train_lightgbm_regression(X, y, save_to=model_path, recompute=recompute)
+    
+    """
+    Test performance on unseen data
+    """    
+    X_test, y_test = dataloader.get_test()
+    X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
+    X, y = dl.make_binary_target(X, y, 'Status')
+    
+    test_classification(X, y, model_path)
+    
+
 
 
 if __name__ == "__main__":
@@ -63,99 +156,10 @@ if __name__ == "__main__":
     dataset_manager.write_dataset(test_size=0.5, overwrite=False)
     
     
-    """
-    ***********************
-    Local data preparation
-    ***********************
-    """
-    partitions_sample = 10
-    target = 'Status'
-    import dataset.dataloader as dl
-    dataloader = dl.DataLoader(dataset_manager)
 
-    """
-    ***********************
-    Linear Model Experiment
-    ***********************
-    """
-    # local preprocessing (e.g., OHE for linear models)    
-    X_train, y_train = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe)
-    X, y = dl.convert_to_pandas(X_train, y_train, target, partitions_sample)
-    X.fillna(0, inplace=True)
-
-    """
-    Fit models to training data and test against test data
-    """
-    logistic_reg_save = Path(config.models_directory, 'train_02_logistic_regression.sav')    
-    from training_scripts.train_02_logistic_regression import train_logistic_regression
-    linr_train = train_logistic_regression(X, y, save_to=logistic_reg_save, recompute=recompute)
-
-    """
-    Test performance on unseen data
-    """    
-    X_test, y_test = dataloader.get_test_ohe(cat_columns_to_ohe, date_columns_to_ohe)
-    X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
-    X.fillna(0, inplace=True)
-    test_classification(X, y, logistic_reg_save)
+    run_exp_02_logistic_regression()
     
-    """
-    Get interpretation
-    """
-    import eli5
-    # apply interpretability strategy
-    explanation_df = eli5.explain_weights_df(joblib.load(logistic_reg_save), feature_names=X.columns.values)
-    explanation_df.sort_values('weight', inplace=True)
-    print(explanation_df.head())
-    
-
-    """
-    ****************************
-    Gradient Boosting Experiment
-    ****************************
-    """
-    
-    
-#     X, y = lightgbm_preprocess(X_train, 
-#                                 y_train,
-#                                 target,
-#                                 partitions_sample)
-    
-#     """
-#     LightGBM parameters
-#     """
-#     params = {
-#                 "max_bin": 512,
-#                 "learning_rate": 0.05,
-#                 "boosting_type": "gbdt",
-#                 "objective": "binary",
-#                 "metric": "binary_logloss",
-#                 "num_leaves": 10, # Low value will decrease likelihood of overfitting
-#                 "verbose": -1,
-#                 "min_data": 100,
-#                 "boost_from_average": True}
-    
-#     """
-#     Training
-#     """
-    
-#     lgb_reg_filename = 'lgb_ran_estimator.sav'
-#     lgb_reg_save = Path(config.models_directory, lgb_reg_filename)
-
-#     lgb_model = train_model_lightgbm(X, y, params, lgb_reg_save)
-    
-    
-#     """
-#     Test
-#     """
-    
-#     X, y = lightgbm_preprocess(X_test, 
-#                                 y_test,
-#                                 target,
-#                                 partitions_sample)
-    
-#     test_classification(X, y, lgb_model)
-
-    
+    run_exp_04_lightgbm_classification()
 
 
 

@@ -81,6 +81,22 @@ class DataLoader():
         return ddf
 
 
+def make_binary_target(X, y, target_column, ctrl_targ_tup = ('Normal', 'Blocked')):
+    """
+    Takes an X dataframe and y series to produce a binary target
+    TODO modify int to be 0, 1 no matter what the target
+    """
+    X[target_column] = y  
+    ddf = X
+    
+    filtered_ddf = ddf[(ddf[target_column] == 'Normal') | (ddf[target_column] == 'Blocked')]
+    y = filtered_ddf[target_column].map({"Normal":0, "Blocked":1, "Dropped":2, "Non-progressed":3}).astype(int)
+    X = filtered_ddf.drop(target_column, axis=1)
+    
+#     print(y.unique())
+    
+    return X, y
+
 
 
 
