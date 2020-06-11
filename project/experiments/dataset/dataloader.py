@@ -81,7 +81,7 @@ class DataLoader():
         return ddf
 
 
-def make_binary_target(X, y, target_column, ctrl_targ_tup = ('Normal', 'Blocked')):
+def make_binary_target(X, y, target_column, ctrl_targ_tup = ('Normal', 'Dropped')):
     """
     Takes an X dataframe and y series to produce a binary target
     TODO modify int to be 0, 1 no matter what the target
@@ -89,14 +89,18 @@ def make_binary_target(X, y, target_column, ctrl_targ_tup = ('Normal', 'Blocked'
     X[target_column] = y  
     ddf = X
     
-    filtered_ddf = ddf[(ddf[target_column] == 'Normal') | (ddf[target_column] == 'Blocked')]
-    y = filtered_ddf[target_column].map({"Normal":0, "Blocked":1, "Dropped":2, "Non-progressed":3}).astype(int)
+    print('Targets are: 0-' + ctrl_targ_tup[0] + ' 1-'+ ctrl_targ_tup[1])
+    
+    filtered_ddf = ddf[(ddf[target_column] == ctrl_targ_tup[0]) | (ddf[target_column] == ctrl_targ_tup[1])]
+#     y = filtered_ddf[target_column].map({"Normal":0, "Blocked":1, "Dropped":2, "Non-progressed":3}).astype(int)
+
+    y = filtered_ddf[target_column].map({ctrl_targ_tup[0]:0, ctrl_targ_tup[1]:1}).astype(int)
+
     X = filtered_ddf.drop(target_column, axis=1)
     
 #     print(y.unique())
     
     return X, y
-
 
 
 
@@ -107,6 +111,7 @@ def convert_to_pandas(X_ddf, y_ddf, target, partitions_to_concat):
     import project.src.preprocessing.dask_to_pandas as dtp
     X, y = dtp.dask_Xy_to_df(X_ddf, y_ddf, target, partitions_to_concat)
 
+    
     return X, y
 
 def fill_nulls(df):

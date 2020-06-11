@@ -72,6 +72,9 @@ def run_exp_02_logistic_regression():
     Test performance on unseen data
     """    
     X_test, y_test = dataloader.get_test_ohe(cat_columns_to_ohe, date_columns_to_ohe)
+    print('**********************')
+    print('**********************')
+    print(X_test.head())
     X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
     X.fillna(0, inplace=True)
     X, y = dl.make_binary_target(X, y, 'Status')
@@ -121,6 +124,9 @@ def run_exp_04_lightgbm_classification():
     Test performance on unseen data
     """    
     X_test, y_test = dataloader.get_test()
+    print('**********************')
+    print('**********************')
+    print(X_test.head())
     X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
     X, y = dl.make_binary_target(X, y, 'Status')
     
