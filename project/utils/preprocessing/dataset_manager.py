@@ -16,16 +16,15 @@ class DatasetManager():
         self.config = config_obj
         self.set_directories(self.config)
         self.ddf = None
+        self.set_targets()
     
     def set_directories(self, config):
         self.input_path = config.input_path
         
         # Preprocessed directory
         self.train_data_path = PurePath(config.train_data)
-        self.train_target_path = PurePath(config.train_target)
 
         self.test_data_path = PurePath(config.test_data)
-        self.test_target_path = PurePath(config.test_target)    
     
     
     def load_ddf(self):
@@ -36,8 +35,15 @@ class DatasetManager():
 
     
     def set_targets(self):
-        self.targets = self.config.targets
+        self.target_column = self.config.target_column
+        print(self.target_column)
         
+        self.target_categories = None
+        try:
+            self.target_categories = self.config.target_categories
+            print('Target categories are: ' + str(self.target_categories))
+        except:
+            pass
     
     def make_modifications(self, ddf, config):
         """
@@ -82,6 +88,7 @@ class DatasetManager():
                 rmdir(path)
             except OSError as e:
                 pass
+            
 
     def _check_all_paths_exist(self, paths_list):
         """
@@ -100,9 +107,7 @@ class DatasetManager():
         """
         
         paths_list = [self.train_data_path, 
-                      self.train_target_path, 
-                      self.test_data_path, 
-                      self.test_target_path]
+                      self.test_data_path]
         
         all_paths_exist = self._check_all_paths_exist(paths_list)
         
@@ -116,7 +121,7 @@ class DatasetManager():
             self.ddf = self.load_ddf()
             
             # Writes training and test sets to disk
-            self.prepare_training_test(test_size)
+            self.separate_train_test(test_size)
             self._write_dataset()
         
         else:
@@ -132,47 +137,49 @@ class DatasetManager():
         engine = 'pyarrow'  
         print('Writing trainings and test sets: ')
         
-        dd.to_parquet(self.X_train, self.train_data_path, engine=engine)
-        dd.to_parquet(self.y_train, self.train_target_path, engine=engine)
+        dd.to_parquet(self.train_ddf, self.train_data_path, engine=engine)
+#         dd.to_parquet(self.y_train, self.train_target_path, engine=engine)
 
-        dd.to_parquet(self.X_test, self.test_data_path , engine=engine)
-        dd.to_parquet(self.y_test, self.test_target_path, engine=engine)
+        dd.to_parquet(self.test_ddf, self.test_data_path , engine=engine)
+#         dd.to_parquet(self.y_test, self.test_target_path, engine=engine)
         
-        print()
     
     
-    def prepare_training_test(self, test_size = 0.1):
+    def separate_train_test(self, test_fraction = 0.1):
         """
         Separates to training a test sets (once dask is run)
         """
-        from dask_ml.model_selection import train_test_split
+#         from dask_ml.model_selection import train_test_split
     
-        y = self.ddf[self.targets]
-        X = self.ddf.drop(self.targets, axis=1)
+#         y = self.ddf[self.targets]
+#         X = self.ddf.drop(self.targets, axis=1)
         
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, 
-                                                                                y, 
-                                                                                test_size = test_size,
-                                                                                random_state = 42)
+#         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, 
+#                                                                                 y, 
+#                                                                                 test_size = test_size,
+#                                                                                 random_state = 42)
 
-      
+        
+#         from dask import random_split
+        
+        self.train_ddf, self.test_ddf = self.ddf.random_split([1-test_fraction, test_fraction] , random_state=42)
+
+        
     def get_training_set(self):
         """
         Get dask training set reader
         """
-        self.X_train = dd.read_parquet(self.train_data_path)
-        self.y_train = dd.read_parquet(self.train_target_path)
+        self.training_data = dd.read_parquet(self.train_data_path)
         
-        return self.X_train, self.y_train
+        return self.training_data
         
         
     def get_test_set(self):
         """
         Get dask test set reader
         """
-        self.X_test = dd.read_parquet(self.test_data_path)
-        self.y_test = dd.read_parquet(self.test_target_path)
+        self.testing_data = dd.read_parquet(self.test_data_path)
         
-        return self.X_test, self.y_test
+        return self.testing_data
     
     

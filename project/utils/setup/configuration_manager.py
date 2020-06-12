@@ -7,14 +7,14 @@ class Config():
     """
     Loading config
     """
-    def __init__(self, config_path):
+    def __init__(self, config_path, verbose=False):
         self.parser = ConfigParser()
         self.parser.optionxform = str
                 
         if isfile(config_path):
             print('Loading configuration from: ' + str(config_path))
             self.parser.read(config_path)
-            self.get_file_details()
+            self.get_file_details(verbose)
             self.get_modifications()
             self.get_targets()
 
@@ -22,7 +22,7 @@ class Config():
             print('Config file not found: ' + str(config_path))
         
         
-    def get_file_details(self, verbose=False):
+    def get_file_details(self, verbose):
         
         directories = 'directories'
 
@@ -41,31 +41,21 @@ class Config():
         
         # Preprocessed data directory
         self.preprocessed_dir = join(data_directory,
-                                     self.parser[directories]['train_data_dir'])
+                                     self.parser[directories]['preprocessed_data_dir'])
         
         self.train_data = join(self.preprocessed_dir, 
                                     self.parser[directories]['train_data'])
         
-        self.train_target = join(self.preprocessed_dir, 
-                                    self.parser[directories]['train_target'])
-        
         self.test_data = join(self.preprocessed_dir, 
                                     self.parser[directories]['test_data'])
         
-        self.test_target = join(self.preprocessed_dir, 
-                                    self.parser[directories]['test_target'])
-        
-        
         
         # Figures directory
-        self.figures_dir = join(self.parser[directories]['base_directory'],
-                                self.parser['results']['figures'])
+        self.figures_dir = self.parser['results']['figures']
         
         # Trained models directory
-        self.models_directory = join(self.parser[directories]['base_directory'],
-                                self.parser['results']['trained_models'])
+        self.models_directory = self.parser['results']['trained_models']
         
-        verbose = True
         if verbose:
             print('raw_input: ' + self.raw_data_path)
             print('input_path: ' + self.input_path)
@@ -77,10 +67,16 @@ class Config():
             print('test_target: ' + self.test_target)
 
 
+    def get_inputs(self):
+        pass
+        
+            
     def get_targets(self):
-        target_columns = 'target_columns' 
-        self.targets = self.parser[target_columns]['targets'].strip().split()
- 
+        target_column = 'target_column' 
+        self.target_column = self.parser[target_column]['target'].strip().split()[0]
+        
+        self.target_categories = self.parser[target_column]['target_categories'].strip().split()
+
 
     def get_modifications(self):
         modified_columns = 'modified_columns'
@@ -101,7 +97,11 @@ class Config():
                            'first_column': r_lst[1].strip(), 
                            'operation': r_lst[2].strip()}
                 
-            self.to_modify.append(r_dict)
+            try:
+                # Handles case where r_dict not available
+                self.to_modify.append(r_dict)
+            except:
+                pass
     
         # Get columns to drop from the training/validation set
         self.columns_to_drop = self.parser[modified_columns]['drop_columns'].strip().split('\n')

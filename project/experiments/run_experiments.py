@@ -15,7 +15,7 @@ def load_config(config_path='config.ini'):
     """
     Loads common configuration parameters
     """
-    from project.src.utils.configuration_manager import Config
+    from project.utils.setup.configuration_manager import Config
     return Config(config_path)
 
 
@@ -34,7 +34,7 @@ def init_dataset_manager(config):
     """
     Set up dataset manager to handle dataset manipulations 
     """
-    from project.src.preprocessing.dataset_manager import DatasetManager
+    from project.utils.preprocessing.dataset_manager import DatasetManager
     return DatasetManager(config)
 
 
@@ -44,21 +44,11 @@ def run_exp_02_logistic_regression():
     Linear Model Experiment
     ***********************
     """
-    
-    """
-    ***********************
-    Local data preparation
-    ***********************
-    """
-    partitions_sample = 10
-    target = 'Status'
-    import dataset.dataloader as dl
-    dataloader = dl.DataLoader(dataset_manager)
+    binary_target = ()
     
     # local preprocessing (e.g., OHE for linear models)    
     X_train, y_train = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe)
     X, y = dl.convert_to_pandas(X_train, y_train, target, partitions_sample)
-    X, y = dl.make_binary_target(X, y, 'Status')
     X.fillna(0, inplace=True)
 
     """
@@ -71,13 +61,10 @@ def run_exp_02_logistic_regression():
     """
     Test performance on unseen data
     """    
-    X_test, y_test = dataloader.get_test_ohe(cat_columns_to_ohe, date_columns_to_ohe)
-    print('**********************')
-    print('**********************')
-    print(X_test.head())
+    X_test, y_test = dataloader.get_test_ohe(cat_columns_to_ohe, 
+                                             date_columns_to_ohe)
     X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
     X.fillna(0, inplace=True)
-    X, y = dl.make_binary_target(X, y, 'Status')
     test_classification(X, y, model_path)
     
     """
@@ -97,38 +84,33 @@ def run_exp_04_lightgbm_classification():
     ****************************
     """
     
-    """
-    ***********************
-    Local data preparation
-    ***********************
-    """
-    partitions_sample = 10
-    target = 'Status'
-    import dataset.dataloader as dl
-    dataloader = dl.DataLoader(dataset_manager)
-    
     # local preprocessing (e.g., OHE for linear models)    
-    X_train, y_train = dataloader.get_train()
+#     X_train, y_train = dataloader.get_train()
+    X_train, y_train = dataloader.get_train_ohe(cat_columns_to_ohe, 
+                                                date_columns_to_ohe,
+                                                'Status',
+                                                binary_target_tup = ('Normal', 'Blocked')
+                                               )
+    X, y = dl.convert_to_pandas(X_train, y_train, target, partitions_sample)
     
     """
     Fit model to training data
     """
     model_path = Path(config.models_directory, 'train_04_lightgbm_classification.sav')    
-    X, y = dl.convert_to_pandas(X_train, y_train, target, partitions_sample)
-    X, y = dl.make_binary_target(X, y, 'Status')
-    
+
     from training_scripts.train_04_lightgbm_classification import train_lightgbm_regression
     train_lightgbm_regression(X, y, save_to=model_path, recompute=recompute)
     
     """
     Test performance on unseen data
     """    
-    X_test, y_test = dataloader.get_test()
-    print('**********************')
-    print('**********************')
-    print(X_test.head())
+#     X_test, y_test = dataloader.get_test()
+    X_test, y_test = dataloader.get_test_ohe(cat_columns_to_ohe, 
+                                             date_columns_to_ohe, 
+                                             'Status',
+                                             binary_target_tup = ('Normal', 'Blocked')
+                                            )
     X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
-    X, y = dl.make_binary_target(X, y, 'Status')
     
     test_classification(X, y, model_path)
     
@@ -161,11 +143,20 @@ if __name__ == "__main__":
     # 5. prepare training and test data sets (interim -> preprocessed)
     dataset_manager.write_dataset(test_size=0.5, overwrite=False)
     
+    """
+    ***********************
+    Local data preparation
+    ***********************
+    """
     
+    partitions_sample = 10
+    target = 'Status'
+    import dataset.dataloader as dl
+    dataloader = dl.DataLoader(dataset_manager)
 
     run_exp_02_logistic_regression()
     
-    run_exp_04_lightgbm_classification()
+#     run_exp_04_lightgbm_classification()
 
 
 
