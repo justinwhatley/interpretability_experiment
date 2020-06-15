@@ -27,9 +27,3 @@ Experiments:
 5. nn_interpretability: (in progress) Uses a feed-forward neural network to model the data, representing categoricals as embeddings. Uses ShAP for interpretability of model - will see how this handles encoded categorical data. 
 
 
-See the [open issues](https://github.com/justinwhatley/interpretability_experiment/issues) for a list of ideas and known issues.
-
-
-<!-- CONTACT -->
-## Contact
-Project Link: [https://github.com/justinwhatley/interpretability_experiment]

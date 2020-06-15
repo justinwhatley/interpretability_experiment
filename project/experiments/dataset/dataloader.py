@@ -1,24 +1,25 @@
 import pandas as pd
 
 
-
 class DataLoader():
     """
     
     """
     
     def __init__(self, dataset_manager):
+        # The dataset manager has access to dataset details from the configuration file
         self.dataset_manager = dataset_manager
-        
-        # For OHE
+        self.target_column = self.dataset_manager.target_column
+        self.target_categories = self.dataset_manager.target_categories 
+
+        # For common OHE when applied in different experiments
         from dask_ml.preprocessing import OneHotEncoder
         self.encoder =  OneHotEncoder(sparse=False)
-
         
     """
     Regular Dask loader
     """
-    def get_train(self):
+    def get_train(self, dask=True):
         """
         # TODO consider randomized distributed sampling options 
         (might be able to just do this in Dask though)
@@ -30,69 +31,78 @@ class DataLoader():
         return train_ddf
 
 
-    def get_test(self):
+    def get_test(self, dask=True):
         """
         Dask test loader with preprocessing on X_test
         """
         test_ddf = self.dataset_manager.get_test_set()
 
         return test_ddf
-    
 
+    
     """
     Dask loader with OHE
     """
-    def get_train_ohe(self, categorical_columns_to_ohe, datetime_columns_to_ohe):
+    def get_train_ohe(self, categorical_columns_to_ohe, datetime_columns_to_ohe, dask=True):
         """
         Dask test loader with preprocessing on X_train
-        binary_target_tup, e.g., ('Normal', 'Blocked')
-        """
-        X_train, y_train = self.get_train_X_y()
-            
-        X_train = self.preprocess(X_train, 
-                            categorical_columns_to_ohe, 
-                            datetime_columns_to_ohe)
-    
-        return X_train, y_train
-
-
-    def get_test_ohe(self, categorical_columns_to_ohe, datetime_columns_to_ohe):
-        """
-        Dask test loader with OHE preprocessing on X_ddf
-        """
-        X_test, y_test = self.dataset_manager.get_test_set()
-
-        X_test = self.preprocess(X_test, 
-                        categorical_columns_to_ohe, 
-                        datetime_columns_to_ohe)
-        
-
-        return X_test, y_test
-
-    
-    def get_train_X_y(self):
-        """
-        
         """
         train_ddf = self.dataset_manager.get_training_set()
-        target_column = self.dataset_manager.target_column
-        binary_target_tup = self.dataset_manager.target_categories 
+        return self.data_prep_ohe(train_ddf, categorical_columns_to_ohe, datetime_columns_to_ohe, dask)
+    
+    def get_test_ohe(self, categorical_columns_to_ohe, datetime_columns_to_ohe, dask=True):
+        """
+        Dask test loader with preprocessing on X_train
+        """
+        test_ddf = self.dataset_manager.get_test_set()
+        return self.data_prep_ohe(test_ddf, categorical_columns_to_ohe, datetime_columns_to_ohe, dask)
         
-        if binary_target_tup is not None:
-            self.make_binary_target(train_ddf, target_column, binary_target_tup)
-        y_ddf = train_ddf[target]
-        X_ddf = train_ddf.drop(target, axis=1)
+
+
+    def data_prep_ohe(self, ddf, categorical_columns_to_ohe, datetime_columns_to_ohe, dask):
         
-        return X_ddf, y_ddf
+        # Make binary targets from config if categories are specified
+        if self.target_categories is not None:
+            ddf = self.make_binary_target(ddf, self.target_column, self.target_categories)
+
+        # Make OHE representation, tossing other categoricals
+        # TODO check if this messes with target category (e.g., removes it)
+        ddf = self.process_ohe(ddf, 
+                            categorical_columns_to_ohe, 
+                            datetime_columns_to_ohe)
+        # Get fixed pandas sample from a number of dataframe partitions
+        if not dask:
+            ddf = self.convert_to_pandas(ddf, 10)
+        
+        # Convert to X, y
+        y = ddf[self.target_column]
+        X = ddf.drop(self.target_column, axis=1)
+        return X, y
+
+    
+
+    
+#     def get_X_y(self, ddf):
+#         """
+        
+#         """
+#         target_column = self.dataset_manager.target_column
+#         binary_target_tup = self.dataset_manager.target_categories 
+        
+#         if binary_target_tup is not None:
+#             self.make_binary_target(ddf, target_column, binary_target_tup)
+#         y_ddf = ddf[target_column]
+#         X_ddf = ddf.drop(target_column, axis=1)
+        
+#         return X_ddf, y_ddf
         
         
 
-    def preprocess(self, ddf, categorical_columns_to_ohe, datetime_columns_to_ohe):
+    def process_ohe(self, ddf, categorical_columns_to_ohe, datetime_columns_to_ohe):
         """
         Preprocessing step for OHE of dask ddf
         """
-        import project.src.preprocessing.preprocessing_pipelines as preprocessing
-
+        import project.utils.preprocessing.preprocessing_pipelines as preprocessing
 
         ddf = preprocessing.ohe_preprocessing_pipeline(self.encoder, 
                                          ddf, 
@@ -104,64 +114,49 @@ class DataLoader():
 
     def make_binary_target(self, ddf, target_column, binary_target_tup):
         """
-        Takes an X dataframe and y series to produce a binary target
+        Takes a dask dataframe to change categorical targets into a binary target
         """
 
         print('Targets are: 0-' + binary_target_tup[0] + ' 1-'+ binary_target_tup[1])
-
-#         filtered_ddf = ddf[(ddf[target_column] == ctrl_targ_tup[0]) | (ddf[target_column] == ctrl_targ_tup[1])]
         
+        # Filters away target categories that are not of interest
         filtered_ddf = ddf[(ddf[target_column] == binary_target_tup[0]) | (ddf[target_column] == binary_target_tup[1])]
-
-
-#         filtered_ddf = filter_categories(ddf, binary_target_tup)
-
-    #     y = filtered_ddf[target_column].map({"Normal":0, "Blocked":1, "Dropped":2, "Non-progressed":3}).astype(int)
-
-        # Only works for Pandas
-        # y = filtered_ddf[target_column].map({ctrl_targ_tup[0]:0, ctrl_targ_tup[1]:1}).astype(int)
         
-#         y = filtered_ddf[target_column].map({ctrl_targ_tup[0]:0, ctrl_targ_tup[1]:1}).astype(int)
-#         y = replace(filtered_ddf[target_column], ctrl_targ_tup).astype(int)
-        ddf = ddf.map_partitions(replace(target_column, ctrl_targ_tup))
-
-        ddf = ddf.replace({target_column: [ctrl_targ_tup[0], ctrl_targ_tup[1]]},
-                         {target_column: ['0', '1']}).astype(int)
-    #     print(y.unique())
-
-        return X, y
-    
-    
-    def filter_categories(ddf, ctrl_targ_tup):
-        return ddf[(ddf[target_column] == ctrl_targ_tup[0]) | (ddf[target_column] == ctrl_targ_tup[1])]               
+        # Replaces the string representation of the targets with a numerical representation
+        def replace(df: pd.DataFrame) -> pd.DataFrame:
+            return df.replace({target_column: [binary_target_tup[0], binary_target_tup[1]]},
+                             {target_column: [0, 1]})
+        filtered_ddf = filtered_ddf.map_partitions(replace)
+        filtered_ddf[target_column] = filtered_ddf[target_column].astype(int)
         
+        # Check
+#         print(filtered_ddf[target_column].unique().compute())
+        
+        return filtered_ddf          
+        
+
+    def convert_to_pandas(self, ddf, partitions_sample):
+        """
+        Conversion to pandas/moving dataframe to memory for library support
+        """
+        
+        import project.utils.preprocessing.dask_to_pandas as dtp
+        return dtp.dask_ddf_to_df(ddf, partitions_to_concat=partitions_sample)
+        
+#         X, y = dtp.dask_Xy_to_df(X_ddf, y_ddf, self.dataset_manager.target_column, partitions_to_concat)
+
+#         return X, y
     
-#     def replace(ddf: pd.DataFrame, ctrl_targ_tup) -> pd.DataFrame:
-#         """
-#         """
-#         return ddf.replace({target_column: [ctrl_targ_tup[0], ctrl_targ_tup[1]]},
-#                          {target_column: ['0', '1']}).astype(int)
 
+    def fill_nulls(df):
+        """
+        """
+        # Fill null values
+        #     categorical_cols = X.select_dtypes(include=['category'])
+        #     for category in categorical_cols:
+        #         X[category].add_categories('Unknown', inplace=True)
+        #     X[categorical_cols].fillna('Unknown', inplace=True)
 
-
-def convert_to_pandas(X_ddf, y_ddf, target, partitions_to_concat):
-    """
-    Conversion to pandas/moving dataframe to memory for library support
-    """
-    import project.src.preprocessing.dask_to_pandas as dtp
-    X, y = dtp.dask_Xy_to_df(X_ddf, y_ddf, target, partitions_to_concat)
-
-    return X, y
-
-def fill_nulls(df):
-    """
-    """
-    # Fill null values
-    #     categorical_cols = X.select_dtypes(include=['category'])
-    #     for category in categorical_cols:
-    #         X[category].add_categories('Unknown', inplace=True)
-    #     X[categorical_cols].fillna('Unknown', inplace=True)
-
-    df.fillna(0, inplace=True)
+        df.fillna(0, inplace=True)
 
 

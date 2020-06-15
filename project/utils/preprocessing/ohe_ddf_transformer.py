@@ -27,7 +27,6 @@ class TransformerOHE():
         # Dask ddf transformer
         self.ohe_ddf = self.encoder.transform(ddf[categorical_columns_lst])
         return self.ohe_ddf
-
     
 
 # def add_datetime_categories(ddf, dt_column_lst, hourslot=True, day_of_week=True):

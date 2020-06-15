@@ -44,11 +44,9 @@ def run_exp_02_logistic_regression():
     Linear Model Experiment
     ***********************
     """
-    binary_target = ()
     
     # local preprocessing (e.g., OHE for linear models)    
-    X_train, y_train = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe)
-    X, y = dl.convert_to_pandas(X_train, y_train, target, partitions_sample)
+    X, y = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe, dask=False)
     X.fillna(0, inplace=True)
 
     """
@@ -61,9 +59,9 @@ def run_exp_02_logistic_regression():
     """
     Test performance on unseen data
     """    
-    X_test, y_test = dataloader.get_test_ohe(cat_columns_to_ohe, 
-                                             date_columns_to_ohe)
-    X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
+    X, y = dataloader.get_test_ohe(cat_columns_to_ohe, 
+                                             date_columns_to_ohe, 
+                                             dask=False)
     X.fillna(0, inplace=True)
     test_classification(X, y, model_path)
     
@@ -110,7 +108,7 @@ def run_exp_04_lightgbm_classification():
                                              'Status',
                                              binary_target_tup = ('Normal', 'Blocked')
                                             )
-    X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
+#     X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
     
     test_classification(X, y, model_path)
     
@@ -149,7 +147,6 @@ if __name__ == "__main__":
     ***********************
     """
     
-    partitions_sample = 10
     target = 'Status'
     import dataset.dataloader as dl
     dataloader = dl.DataLoader(dataset_manager)
