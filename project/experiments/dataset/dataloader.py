@@ -42,6 +42,7 @@ class DataLoader():
     
     """
     Dask loader with OHE
+    # TODO reset ddf handle after transformation to pandas
     """
     def get_train_ohe(self, categorical_columns_to_ohe, datetime_columns_to_ohe, dask=True):
         """
@@ -49,6 +50,7 @@ class DataLoader():
         """
         train_ddf = self.dataset_manager.get_training_set()
         return self.data_prep_ohe(train_ddf, categorical_columns_to_ohe, datetime_columns_to_ohe, dask)
+    
     
     def get_test_ohe(self, categorical_columns_to_ohe, datetime_columns_to_ohe, dask=True):
         """
@@ -79,7 +81,7 @@ class DataLoader():
         X = ddf.drop(self.target_column, axis=1)
         return X, y
 
-    
+
 
     
 #     def get_X_y(self, ddf):

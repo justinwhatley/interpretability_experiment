@@ -38,7 +38,7 @@ def init_dataset_manager(config):
     return DatasetManager(config)
 
 
-def run_exp_02_logistic_regression():
+def run_exp_02_logistic_regression_pd(model_sav):
     """
     ***********************
     Linear Model Experiment
@@ -52,7 +52,7 @@ def run_exp_02_logistic_regression():
     """
     Fit model to training data
     """
-    model_path = Path(config.models_directory, 'train_02_logistic_regression.sav')    
+    model_path = Path(config.models_directory, model_sav)    
     from training_scripts.train_02_logistic_regression import train_logistic_regression
     train_logistic_regression(X, y, save_to=model_path, recompute=recompute)
 
@@ -75,7 +75,7 @@ def run_exp_02_logistic_regression():
     print(explanation_df.head())
 
     
-def run_exp_04_lightgbm_classification():
+def run_exp_04_lightgbm_classification_pd(model_sav):
     """
     ****************************
     Gradient Boosting Experiment
@@ -84,12 +84,69 @@ def run_exp_04_lightgbm_classification():
     
     # local preprocessing (e.g., OHE for linear models)    
 #     X_train, y_train = dataloader.get_train()
-    X_train, y_train = dataloader.get_train_ohe(cat_columns_to_ohe, 
-                                                date_columns_to_ohe,
-                                                'Status',
-                                                binary_target_tup = ('Normal', 'Blocked')
-                                               )
-    X, y = dl.convert_to_pandas(X_train, y_train, target, partitions_sample)
+    X, y = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe, dask=False)
+    
+    """
+    Fit model to training data
+    """
+    model_path = Path(config.models_directory, model_sav)    
+
+    from training_scripts.train_04_lightgbm_classification import train_lightgbm_regression
+    train_lightgbm_regression(X, y, save_to=model_path, recompute=recompute)
+    
+    """
+    Test performance on unseen data
+    """    
+#     X_test, y_test = dataloader.get_test()
+    X, y = dataloader.get_test_ohe(cat_columns_to_ohe, 
+                                             date_columns_to_ohe, 
+                                             dask=False)
+    
+    test_classification(X, y, model_path)
+    
+    
+def run_exp_05_lightgbm_classification_incr():
+    """
+    ****************************************
+    Incremental Gradient Boosting Experiment
+    ****************************************
+    """
+    
+    # local preprocessing (e.g., OHE for linear models)    
+#     X_train, y_train = dataloader.get_train()
+    X, y = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe, dask=False)
+    
+    """
+    Fit model to training data
+    """
+    model_path = Path(config.models_directory, 'train_05_lightgbm_classification.sav')    
+
+    from training_scripts.train_04_lightgbm_classification import train_lightgbm_regression
+    train_lightgbm_regression(X, y, save_to=model_path, recompute=recompute)
+    
+    """
+    Test performance on unseen data
+    """    
+#     X_test, y_test = dataloader.get_test()
+    X, y = dataloader.get_test_ohe(cat_columns_to_ohe, 
+                                             date_columns_to_ohe, 
+                                             dask=False)
+    
+    test_classification(X, y, model_path)
+    
+
+    
+        
+def run_exp_05_lightgbm_classification():
+    """
+    ****************************
+    Gradient Boosting Experiment
+    ****************************
+    """
+    
+    # local preprocessing (e.g., OHE for linear models)    
+#     X_train, y_train = dataloader.get_train()
+    X, y = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe, dask=False)
     
     """
     Fit model to training data
@@ -103,16 +160,12 @@ def run_exp_04_lightgbm_classification():
     Test performance on unseen data
     """    
 #     X_test, y_test = dataloader.get_test()
-    X_test, y_test = dataloader.get_test_ohe(cat_columns_to_ohe, 
+    X, y = dataloader.get_test_ohe(cat_columns_to_ohe, 
                                              date_columns_to_ohe, 
-                                             'Status',
-                                             binary_target_tup = ('Normal', 'Blocked')
-                                            )
-#     X, y = dl.convert_to_pandas(X_test, y_test, target, partitions_sample)
+                                             dask=False)
     
     test_classification(X, y, model_path)
     
-
 
 
 if __name__ == "__main__":
@@ -151,9 +204,9 @@ if __name__ == "__main__":
     import dataset.dataloader as dl
     dataloader = dl.DataLoader(dataset_manager)
 
-    run_exp_02_logistic_regression()
-    
-#     run_exp_04_lightgbm_classification()
+    run_exp_02_logistic_regression_pd('train_02_logistic_regression.sav')
+    run_exp_04_lightgbm_classification_pd('train_04_lightgbm_classification.sav')
+#     run_exp_05_lightgbm_classification('train_05_lightgbm_classification.sav')
 
 
 
