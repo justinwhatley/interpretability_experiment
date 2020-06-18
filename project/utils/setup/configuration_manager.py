@@ -105,4 +105,16 @@ class Config():
     
         # Get columns to drop from the training/validation set
         self.columns_to_drop = self.parser[modified_columns]['drop_columns'].strip().split('\n')
+        
+        
+        # Get categorical columns to OHE
+        try:
+            self.cat_columns_to_ohe = self.parser[modified_columns]['cat_cols_to_ohe'].strip().split('\n')
+        except:
+            self.cat_columns_to_ohe = None
+        
+        try: 
+            self.date_columns_to_ohe =  self.parser[modified_columns]['date_cols_to_ohe'].strip().split('\n')
+        except:
+            self.date_columns_to_ohe = None
 

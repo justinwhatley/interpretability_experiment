@@ -16,6 +16,7 @@ class DatasetManager():
         self.config = config_obj
         self.set_directories(self.config)
         self.ddf = None
+        self.set_ohe_columns()
         self.set_targets()
     
     def set_directories(self, config):
@@ -44,6 +45,12 @@ class DatasetManager():
             print('Target categories are: ' + str(self.target_categories))
         except:
             pass
+    
+    
+    def set_ohe_columns(self):
+        self.cat_columns_to_ohe = self.config.cat_columns_to_ohe
+        self.date_columns_to_ohe = self.config.date_columns_to_ohe
+    
     
     def make_modifications(self, ddf, config):
         """

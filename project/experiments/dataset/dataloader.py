@@ -44,20 +44,26 @@ class DataLoader():
     Dask loader with OHE
     # TODO reset ddf handle after transformation to pandas
     """
-    def get_train_ohe(self, categorical_columns_to_ohe, datetime_columns_to_ohe, dask=True):
+    def get_train_ohe(self, dask=True):
         """
         Dask test loader with preprocessing on X_train
         """
         train_ddf = self.dataset_manager.get_training_set()
-        return self.data_prep_ohe(train_ddf, categorical_columns_to_ohe, datetime_columns_to_ohe, dask)
+        cat_columns_to_ohe = self.dataset_manager.cat_columns_to_ohe
+        date_columns_to_ohe = self.dataset_manager.date_columns_to_ohe
+        
+        return self.data_prep_ohe(train_ddf, cat_columns_to_ohe, date_columns_to_ohe, dask)
     
     
-    def get_test_ohe(self, categorical_columns_to_ohe, datetime_columns_to_ohe, dask=True):
+    def get_test_ohe(self, dask=True):
         """
         Dask test loader with preprocessing on X_train
         """
         test_ddf = self.dataset_manager.get_test_set()
-        return self.data_prep_ohe(test_ddf, categorical_columns_to_ohe, datetime_columns_to_ohe, dask)
+        cat_columns_to_ohe = self.dataset_manager.cat_columns_to_ohe
+        date_columns_to_ohe = self.dataset_manager.date_columns_to_ohe
+        
+        return self.data_prep_ohe(test_ddf, cat_columns_to_ohe, date_columns_to_ohe, dask)
         
 
 

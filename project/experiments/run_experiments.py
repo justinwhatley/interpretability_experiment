@@ -11,31 +11,31 @@ date_columns_to_ohe = []
 from testing_scripts.test_classification import test_classification
 
 
-def load_config(config_path='config.ini'):
-    """
-    Loads common configuration parameters
-    """
-    from project.utils.setup.configuration_manager import Config
-    return Config(config_path)
+# def load_config(config_path='config.ini'):
+#     """
+#     Loads common configuration parameters
+#     """
+#     from project.utils.setup.configuration_manager import Config
+#     return Config(config_path)
 
 
-def init_local_dask(dashboard_address=':20100', memory_limit='4G'):
-    """
-    Set up local cluster
-    """
-    from dask.distributed import Client, LocalCluster
-    cluster = LocalCluster(dashboard_address=dashboard_address, memory_limit=memory_limit)
-    client = Client(cluster)
-    print(client)
-    return client
+# def init_local_dask(dashboard_address=':20100', memory_limit='4G'):
+#     """
+#     Set up local cluster
+#     """
+#     from dask.distributed import Client, LocalCluster
+#     cluster = LocalCluster(dashboard_address=dashboard_address, memory_limit=memory_limit)
+#     client = Client(cluster)
+#     print(client)
+#     return client
 
 
-def init_dataset_manager(config):
-    """
-    Set up dataset manager to handle dataset manipulations 
-    """
-    from project.utils.preprocessing.dataset_manager import DatasetManager
-    return DatasetManager(config)
+# def init_dataset_manager(config):
+#     """
+#     Set up dataset manager to handle dataset manipulations 
+#     """
+#     from project.utils.preprocessing.dataset_manager import DatasetManager
+#     return DatasetManager(config)
 
 
 def run_exp_02_logistic_regression_pd(model_sav):
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     import dataset.dataloader as dl
     dataloader = dl.DataLoader(dataset_manager)
 
-    run_exp_02_logistic_regression_pd('train_02_logistic_regression.sav')
+    run_exp_02_logistic_regression_pd()
     run_exp_04_lightgbm_classification_pd('train_04_lightgbm_classification.sav')
 #     run_exp_05_lightgbm_classification('train_05_lightgbm_classification.sav')
 
