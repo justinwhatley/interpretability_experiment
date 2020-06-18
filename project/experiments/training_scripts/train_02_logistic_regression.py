@@ -17,7 +17,6 @@ def train_logistic_regression(X, y, save_to, recompute=False):
     from sklearn.linear_model import LogisticRegression
 
     estimator = LogisticRegression(class_weight="balanced", solver="liblinear", random_state=42)
-    print('Training model')
     estimator.fit(X, y=y)
 
     return estimator

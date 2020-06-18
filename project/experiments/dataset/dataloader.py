@@ -82,7 +82,6 @@ class DataLoader():
         return X, y
 
 
-
     
 #     def get_X_y(self, ddf):
 #         """

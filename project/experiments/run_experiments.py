@@ -105,7 +105,7 @@ def run_exp_04_lightgbm_classification_pd(model_sav):
     test_classification(X, y, model_path)
     
     
-def run_exp_05_lightgbm_classification_incr():
+def run_exp_05_lightgbm_classification_incr(model_sav):
     """
     ****************************************
     Incremental Gradient Boosting Experiment
@@ -114,7 +114,7 @@ def run_exp_05_lightgbm_classification_incr():
     
     # local preprocessing (e.g., OHE for linear models)    
 #     X_train, y_train = dataloader.get_train()
-    X, y = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe, dask=False)
+    X, y = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe, dask=True)
     
     """
     Fit model to training data
@@ -128,41 +128,7 @@ def run_exp_05_lightgbm_classification_incr():
     Test performance on unseen data
     """    
 #     X_test, y_test = dataloader.get_test()
-    X, y = dataloader.get_test_ohe(cat_columns_to_ohe, 
-                                             date_columns_to_ohe, 
-                                             dask=False)
-    
-    test_classification(X, y, model_path)
-    
-
-    
-        
-def run_exp_05_lightgbm_classification():
-    """
-    ****************************
-    Gradient Boosting Experiment
-    ****************************
-    """
-    
-    # local preprocessing (e.g., OHE for linear models)    
-#     X_train, y_train = dataloader.get_train()
-    X, y = dataloader.get_train_ohe(cat_columns_to_ohe, date_columns_to_ohe, dask=False)
-    
-    """
-    Fit model to training data
-    """
-    model_path = Path(config.models_directory, 'train_04_lightgbm_classification.sav')    
-
-    from training_scripts.train_04_lightgbm_classification import train_lightgbm_regression
-    train_lightgbm_regression(X, y, save_to=model_path, recompute=recompute)
-    
-    """
-    Test performance on unseen data
-    """    
-#     X_test, y_test = dataloader.get_test()
-    X, y = dataloader.get_test_ohe(cat_columns_to_ohe, 
-                                             date_columns_to_ohe, 
-                                             dask=False)
+    X, y = dataloader.get_test_ohe(cat_columns_to_ohe, date_columns_to_ohe, dask=True)
     
     test_classification(X, y, model_path)
     
