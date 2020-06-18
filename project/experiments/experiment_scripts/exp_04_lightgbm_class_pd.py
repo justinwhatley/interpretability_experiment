@@ -1,7 +1,7 @@
 import exp_setup
 from pathlib import Path
 
-def run_exp_02_logistic_regression_pd(model_path, retrain_model=False):
+def run_exp_4_lightgbm_classification_pd(model_path, retrain_model=False):
     """
     Linear Model Experiment
     """
@@ -13,8 +13,8 @@ def run_exp_02_logistic_regression_pd(model_path, retrain_model=False):
     """
     Fit model to training data
     """
-    from project.experiments.training_scripts.train_02_logistic_regression import train_logistic_regression
-    train_logistic_regression(X, y, save_to=model_path, recompute=retrain_model)
+    from project.experiments.training_scripts.train_04_lightgbm_classification import train_lightgbm_classification
+    train_lightgbm_classification(X, y, save_to=model_path, recompute=retrain_model)
 
     """
     Test performance on unseen data
@@ -24,16 +24,6 @@ def run_exp_02_logistic_regression_pd(model_path, retrain_model=False):
     
     from project.experiments.testing_scripts.test_classification import test_classification
     test_classification(X, y, model_path)
-    
-    """
-    Get interpretation - simple weights for linear models
-    """
-    import eli5
-    import joblib
-    explanation_df = eli5.explain_weights_df(joblib.load(model_path), 
-                                             feature_names=X.columns.values)
-    explanation_df.sort_values('weight', inplace=True)
-    print(explanation_df.head())
 
 
     
@@ -48,9 +38,9 @@ if __name__ == "__main__":
     ***************************
     """
 
-    model_name = 'exp_2_log_reg.sav'
+    model_name = 'exp_4_lgbm_class.sav'
     model_path = Path('../', config.models_directory, model_name) 
-    run_exp_02_logistic_regression_pd(model_path, retrain_model)
+    run_exp_4_lightgbm_classification_pd(model_path, retrain_model)
     
 
     

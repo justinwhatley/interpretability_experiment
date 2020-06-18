@@ -1,3 +1,28 @@
+"""
+Setup files
+"""
+
+def run_setup(config_path='../config.ini', overwrite_dataset=False, test_size=0.5):
+    """
+    Setup loader 
+    """
+    # Load config
+    config_path = '../config.ini'
+    config = load_config(config_path)
+    
+    # Start dask client
+    dask_client = init_local_dask()
+    
+    # Create dataset manager
+    dataset_manager = init_dataset_manager(config)
+    dataset_manager.write_dataset(test_size=test_size, overwrite=overwrite_dataset)
+    
+    # Get dataloader
+    dataloader = init_dataloader(dataset_manager)
+    
+    return config, dask_client, dataset_manager, dataloader
+    
+
 
 def load_config(config_path='config.ini'):
     """

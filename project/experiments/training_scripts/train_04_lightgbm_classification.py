@@ -16,7 +16,7 @@ LGB_PARAMS = {
 
 from project.utils.models.model_handling import load_or_store_model
 @load_or_store_model
-def train_lightgbm_regression(X, y, save_to, recompute=False):    
+def train_lightgbm_classification(X, y, save_to, recompute=False):    
     """
     In memory training of lightGBM
     """
