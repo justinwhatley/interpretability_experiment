@@ -23,7 +23,6 @@ def run_setup(config_path='../config.ini', overwrite_dataset=False, test_size=0.
     return config, dask_client, dataset_manager, dataloader
     
 
-
 def load_config(config_path='config.ini'):
     """
     Loads common configuration parameters

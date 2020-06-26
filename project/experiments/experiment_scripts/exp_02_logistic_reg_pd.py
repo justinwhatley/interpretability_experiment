@@ -48,7 +48,7 @@ if __name__ == "__main__":
     ***************************
     """
 
-    model_name = 'exp_2_log_reg.sav'
+    model_name = 'exp_2_lr_class.sav'
     model_path = Path('../', config.models_directory, model_name) 
     run_exp_02_logistic_regression_pd(model_path, retrain_model)
     
